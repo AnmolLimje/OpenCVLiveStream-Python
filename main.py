@@ -11,8 +11,6 @@ import argparse
 import datetime
 import time
 
-#REF LINK: https://pyimagesearch.com/2019/09/02/opencv-stream-video-to-web-browser-html-page/
-
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs
 # are viewing the stream)
@@ -21,9 +19,9 @@ lock = threading.Lock()
 # initialize a flask object
 app = Flask(__name__)
 # initialize the video stream and allow the camera sensor to
-# warmup
-#vs = VideoStream(usePiCamera=1).start()
-vs = VideoStream(src="rtsp://admin:Password@192.168.0.250:554").start()
+# set src=0 for webcam else for any link
+vs = VideoStream(src=0).start()
+#vs = VideoStream(src="rtsp://admin:Password@192.168.0.250:554").start()
 time.sleep(2.0)
 
 def generate():
@@ -38,7 +36,7 @@ def generate():
         yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
 			bytearray(encodedImage) + b'\r\n')
 
-def detect_motion(frameCount):
+def readFrames(frameCount):
 	# grab global references to the video stream, output frame, and
 	# lock variables
 	global vs, outputFrame, lock
@@ -86,7 +84,7 @@ if __name__ == '__main__':
 		help="# of frames used to construct the background model")
 	args = vars(ap.parse_args())
 	# start a thread that will perform motion detection
-	t = threading.Thread(target=detect_motion, args=(
+	t = threading.Thread(target=readFrames, args=(
 		args["frame_count"],))
 	t.daemon = True
 	t.start()
